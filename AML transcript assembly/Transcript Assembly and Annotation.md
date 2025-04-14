@@ -1,15 +1,15 @@
 # Transcript Assembly and Annotation
 
-## StringTie3
+## 1.StringTie3
 
-### ONT Reads Mapping
+### 1.1 ONT Reads Mapping
 ```bash
 minimap2 -t 40 -ax splice --MD GRCh38.p14.genome.fa ${id}_NeoA_ONT_TR_full_length_reads.fastq.gz | \
 samtools view -@ 40 -bS - | \
 samtools sort -@ 40 -o ${id}.ont.sorted.bam -
 ```
 
-### NGS Reads Mapping
+### 1.2 NGS Reads Mapping
 ```bash
 hisat2 -t -x ../reference/hisat2/GRCh38.p14_snp_tran_index \
 -1 ${fastq}/${id}_1_clean.fq.gz \
@@ -19,7 +19,7 @@ samtools view -@ 40 -bS - | \
 samtools sort -@ 40 -o ${id}.sorted.bam -
 ```
 
-### GERCG Transcript Assembly
+### 1.3 GERCG Transcript Assembly
 ```bash
 gffcompare -C -o GERCG \
 gencode.v47.chr_patch_hapl_scaff.annotation.gtf \
@@ -29,15 +29,15 @@ chess.gtf \
 gtex_flair_filter_transcripts.gtf
 ```
 
-### StringTie Transcript Assembly
+### 1.4 StringTie Transcript Assembly
 ```bash
 mkdir ${id} && cd ${id}
 stringtie -p 4 --mix -G GERCG.combined.gtf -o stringtie.out.gtf ../${id}.sorted.bam ../${id}.ont.sorted.bam
 ```
 
-## TALON
+## 2. TALON
 
-### Index Build
+### 2.1 Index Build
 ```bash
 talon_initialize_database \
 --f GERCG.combined.gtf \
@@ -50,7 +50,7 @@ talon_initialize_database \
 --o GERCG
 ```
 
-### Label Reads
+### 2.2 Label Reads
 ```bash
 talon_label_reads \
 --f=${id}.ont.sam \
@@ -61,7 +61,7 @@ talon_label_reads \
 --o=${id}
 ```
 
-### TALON Running
+### 2.3 TALON Running
 ```bash
 echo "${id},${id},PromethION24,${id}_labeled.sam" >> configure.csv
 
@@ -74,7 +74,7 @@ talon \
 --o ${id}
 ```
 
-### Filter
+### 2.4 Filter
 ```bash
 talon_filter_transcripts \
 --db GERCG.db \
@@ -83,7 +83,7 @@ talon_filter_transcripts \
 --o ${id}_filtered_transcripts.csv
 ```
 
-### Create GTF
+### 2.5 Create GTF
 ```bash
 talon_create_GTF \
 --db GERCG.db \
@@ -93,9 +93,9 @@ talon_create_GTF \
 --o ${id}
 ```
 
-## FLAIR
+## 3. FLAIR
 
-### Align
+### 3.1 Align
 ```bash
 source activate flair
 
@@ -105,13 +105,13 @@ flair align -g GRCh38.p14.genome.fa \
 --output ${id}
 ```
 
-### Junctions Processing
+### 3.2 Junctions Processing
 ```bash
 junctions_from_sam -s ${id}.sorted.bam --unique
 sed -i 's/chrG/G/g; s/chrJ/J/g; s/chrK/K/g; s/chrML/ML/g; s/chrMU/MU/g' junctions_from_sam_junctions.bed
 ```
 
-### Correct
+### 3.3 Correct
 ```bash
 flair correct -q ${id}.bed \
 --threads 40 \
@@ -121,7 +121,7 @@ flair correct -q ${id}.bed \
 -o ${id}.correct
 ```
 
-### Collapse
+### 3.4 Collapse
 ```bash
 flair collapse -g ${genome} \
 -q ${id}.bed \
@@ -137,14 +137,14 @@ flair collapse -g ${genome} \
 --check_splice
 ```
 
-## Transcript Merge
+## 4. Transcript Merge
 ```bash
 gffcompare -C -o AML_raw -i gtf.list -p AML_tmp
 ```
 
-## Transcript Filter
+## 5. Transcript Filter
 
-### SQANTI3 Quality Control
+### 5.1 SQANTI3 Quality Control
 ```bash
 python sqanti3_qc.py \
 AML_raw.combined.gtf \
@@ -157,7 +157,7 @@ GERCG.combined.gtf GRCh38.p14.genome.fa \
 --cpus 40 --report skip
 ```
 
-### Filter Configuration (filter_min_cov10.json)
+### 5.2 Filter Configuration (filter_min_cov10.json)
 ```json
 {
     "full-splice_match": [{
@@ -180,14 +180,14 @@ GERCG.combined.gtf GRCh38.p14.genome.fa \
 }
 ```
 
-### Run Filter
+### 5.3 Run Filter
 ```bash
 sqanti3_filter.py rules \
 -j filter_min_cov10.json \
 -o cov10 ${id}_classification.txt
 ```
 
-### PolyA QC
+### 5.4 PolyA QC
 ```bash
 # 生成polyA reads
 python extract_polyA_reads.py ${short}/${id}_1_clean.fq.gz ${id}_nsg_1_polyA.fq.gz
@@ -202,7 +202,7 @@ samtools view -bS ${id}.ngs.polyA.sam | samtools sort -o - | samtools view -h -q
 stringtie -p 4 -G GERCG.combined.gtf -o polyA.out.gtf ${id}.ngs.polyAdedup.unique.bam
 ```
 
-## ORF Finding
+## 6. ORF Finding
 ```bash
 orfanage --reference GRCh38.p14.genome.fa \
 --query AML_filtered.gtf \
@@ -215,12 +215,12 @@ chess.gtf \
 gtex_flair_filter_transcripts.gtf
 ```
 
-## Annotation
+## 7. Annotation
 
-### EggNOG Annotation
+### 7.1 EggNOG Annotation
 `http://eggnog-mapper.embl.de`
 
-### InterProScan
+### 7.2 InterProScan
 ```bash
 interproscan-5.65-97.0/interproscan.sh \
 -i aml.faa \
@@ -231,6 +231,3 @@ interproscan-5.65-97.0/interproscan.sh \
 -pa \
 --tempdir $PWD
 ```
-
-### Tools Available
-1. **Code Interpreter**: `
