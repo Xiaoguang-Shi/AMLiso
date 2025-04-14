@@ -31,9 +31,6 @@ gtex_flair_filter_transcripts.gtf
 
 ### StringTie Transcript Assembly
 ```bash
-fasta=/public/home/rp1001wsy/xiaoguang/data/neoantigen/nanopore/aml_iso_assembly/reference/GRCh38.p14.genome.fa
-gtf=/public/home/rp1001wsy/xiaoguang/data/neoantigen/nanopore/aml_iso_assembly/reference/GERCG.combined.gtf
-
 mkdir ${id} && cd ${id}
 stringtie -p 4 --mix -G GERCG.combined.gtf -o stringtie.out.gtf ../${id}.sorted.bam ../${id}.ont.sorted.bam
 ```
