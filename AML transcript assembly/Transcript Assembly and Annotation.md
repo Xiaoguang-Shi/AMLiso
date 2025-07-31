@@ -124,7 +124,7 @@ flair correct -q ${id}.bed \
 ### 3.4 Collapse
 ```bash
 flair collapse -g ${genome} \
--q ${id}.bed \
+-q ${id}.correct_all_corrected.bed \
 -r ${id}_NeoA_ONT_TR_full_length_reads.fastq.gz \
 --threads 40 \
 --gtf ${gtf} \
